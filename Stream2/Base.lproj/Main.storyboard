@@ -44,6 +44,9 @@
                                                     <exclude reference="mHa-yD-Zmr"/>
                                                 </mask>
                                             </variation>
+                                            <connections>
+                                                <action selector="doneButtonTriggered:" destination="GPz-rB-ppn" eventType="touchUpInside" id="R4s-X9-uMD"/>
+                                            </connections>
                                         </button>
                                         <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Title" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="pvh-4W-yIy">
                                             <rect key="frame" x="72" y="20" width="33" height="21"/>
