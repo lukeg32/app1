@@ -10,25 +10,25 @@ import UIKit
 class EditNotesCell: UITableViewCell {
     typealias NotesChangeAction = (String) -> Void
 
-    @IBOutlet var notesTextField: UITextField!
+    @IBOutlet var notesTextView: UITextView!
 
     private var notesChangeAction: NotesChangeAction?
 
     override func awakeFromNib() {
         super.awakeFromNib()
-        notesTextField.delegate = self
+        notesTextView.delegate = self
     }
 
-    func configure(notes: String, changeAction: @escaping NotesChangeAction) {
-        notesTextField.text = notes
+    func configure(notes: String?, changeAction: NotesChangeAction?) {
+        notesTextView.text = notes
         self.notesChangeAction = changeAction
     }
 }
 
-extension EditNotesCell: UITextFieldDelegate {
-    func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
-        if let originalText = textField.text {
-            let title = (originalText as NSString).replacingCharacters(in: range, with: string)
+extension EditNotesCell: UITextViewDelegate {
+    func textView(_ textView: UITextView, shouldChangeTextIn range: NSRange, replacementText text: String) -> Bool {
+        if let originalText = textView.text {
+            let title = (originalText as NSString).replacingCharacters(in: range, with: text)
             notesChangeAction?(title)
         }
         return true

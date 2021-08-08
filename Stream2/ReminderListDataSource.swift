@@ -1,7 +1,8 @@
 import UIKit
 
 class ReminderListDataSource: NSObject {
-
+    typealias ReminderCompletedAction = (Int) -> Void
+    typealias ReminderDeletedAction = () -> Void
     
     enum Filter: Int {
         case today
@@ -27,16 +28,48 @@ class ReminderListDataSource: NSObject {
         return Reminder.testData.filter { filter.shouldInclude(date: $0.dueDate) }.sorted { $0.dueDate < $1.dueDate }
     }
     
+    var percentComplete: Double {
+        guard filteredReminders.count > 0 else {
+            return 1
+        }
+        let numComplete: Double = filteredReminders.reduce(0) { $0 + ($1.isComplete ? 1 : 0) }
+        return numComplete / Double(filteredReminders.count)
+    }
+    
+    private var reminderCompletedAction: ReminderCompletedAction?
+    private var reminderDeletedAction: ReminderDeletedAction?
+    
+    init(reminderCompletedAction: @escaping ReminderCompletedAction, reminderDeletedAction: @escaping ReminderDeletedAction) {
+        self.reminderCompletedAction = reminderCompletedAction
+        self.reminderDeletedAction = reminderDeletedAction
+        super.init()
+    }
+    
     func update(_ reminder: Reminder, at row: Int) {
-        Reminder.testData[row] = reminder
+        let index = self.index(for: row)
+        Reminder.testData[index] = reminder
+    }
+    
+    func delete(at row: Int) {
+        let index = self.index(for: row)
+        Reminder.testData.remove(at: index)
     }
     
     func reminder(at row: Int) -> Reminder {
         return filteredReminders[row]
     }
 
-    func add(_ reminder: Reminder) {
+    func add(_ reminder: Reminder) -> Int?{
         Reminder.testData.insert(reminder, at: 0)
+        return filteredReminders.firstIndex(where: { $0.id == reminder.id })
+    }
+    
+    func index(for filteredIndex: Int) -> Int {
+        let filteredReminder = filteredReminders[filteredIndex]
+        guard let index = Reminder.testData.firstIndex(where: { $0.id == filteredReminder.id }) else {
+            fatalError("Couldn't retrieve index in source array")
+        }
+        return index
     }
 }
 
@@ -58,9 +91,22 @@ extension ReminderListDataSource: UITableViewDataSource {
             var modifiedReminder = currentReminder
             modifiedReminder.isComplete.toggle()
             self.update(modifiedReminder, at: indexPath.row)
-            tableView.reloadRows(at: [indexPath], with: .none)
+            self.reminderCompletedAction?(indexPath.row)
         }
         return cell
+    }
+
+    func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
+        guard editingStyle == .delete else {
+            return
+        }
+        delete(at: indexPath.row)
+        tableView.performBatchUpdates({
+            tableView.deleteRows(at: [indexPath], with: .automatic)
+        }) { (_) in
+            tableView.reloadData()
+        }
+
     }
 }
 
